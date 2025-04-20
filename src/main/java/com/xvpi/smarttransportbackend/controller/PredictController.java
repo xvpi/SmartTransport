@@ -14,7 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/predict")
-@Api(tags = "预测信息（3天后）")
+@Api(tags = "预测信息")
 public class PredictController {
 
     @Autowired
@@ -22,15 +22,15 @@ public class PredictController {
 
     @GetMapping("/all")
     @ApiOperation("获取全部预测数据")
-    public ApiResponse<List<List<Integer>>> getAll() {
-        return ApiResponse.success(predictionService.getAllPredictions());
+    public ApiResponse<List<List<Integer>>> getAll(@RequestParam String predictTime) {
+        return ApiResponse.success(predictionService.getAllPredictions(predictTime));
     }
 
     @GetMapping("/by-route")
     @ApiOperation("根据路段节点对获取预测数据")
-    public ApiResponse<List<Integer>> getByRoute(@RequestParam String oName, @RequestParam String dName) {
+    public ApiResponse<List<Integer>> getByRoute(@RequestParam String oName, @RequestParam String dName,@RequestParam String predictTime) {
         try {
-            return ApiResponse.success(predictionService.getPredictionByRoute(oName, dName));
+            return ApiResponse.success(predictionService.getPredictionByRoute(oName, dName,predictTime));
         } catch (Exception e) {
             return ApiResponse.error("查询失败: " + e.getMessage());
         }

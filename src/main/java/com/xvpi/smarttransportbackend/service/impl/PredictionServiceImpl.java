@@ -28,10 +28,10 @@ public class PredictionServiceImpl implements PredictionService {
             "绿5-蓝8", "绿6-绿1", "绿6-绿11", "绿7-蓝8", "绿7-绿11", "绿7-绿16", "绿8-绿4", "绿9-绿15", "绿9-绿4"
     );
         @Override
-        public List<List<Integer>> getAllPredictions() {
+        public List<List<Integer>> getAllPredictions(String predictTime) {
             List<String> output;
             try {
-                output = PythonRunner.runPythonScript(PYTHON_SCRIPT_PATH);
+                output = PythonRunner.runPythonScript(PYTHON_SCRIPT_PATH,predictTime);
             } catch (Exception e) {
                 throw new RuntimeException("执行Python脚本失败", e);
             }
@@ -60,7 +60,7 @@ public class PredictionServiceImpl implements PredictionService {
         }
 
     @Override
-    public List<Integer> getPredictionByRoute(String oName, String dName) {
+    public List<Integer> getPredictionByRoute(String oName, String dName, String predictTime) {
         String key = oName + "-" + dName;
         int index = ROUTE_NAMES.indexOf(key);
         if (index == -1) {
@@ -68,7 +68,7 @@ public class PredictionServiceImpl implements PredictionService {
             throw new IllegalArgumentException("未找到对应路段: " + key);
         }
 
-        List<List<Integer>> allPredictions = getAllPredictions();
+        List<List<Integer>> allPredictions = getAllPredictions(predictTime);
         if (index >= allPredictions.size()) {
             logger.error("预测结果数量不足，索引 [{}] 超出范围", index);
             throw new IndexOutOfBoundsException("预测结果索引超出范围");
