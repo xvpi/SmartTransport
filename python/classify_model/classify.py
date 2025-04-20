@@ -82,8 +82,8 @@ def main(data):
     return predicted_states#聚类结果
 
 #输入，从文件夹导入（此时的数据没有行和列标题）
-myspeeds29=np.load('myspeeds29.npy')
-mytraFlows29=np.load('mytraFlows29.npy')
+myspeeds29=np.load('average_speedAll.npy')
+mytraFlows29=np.load('mytraFlowsAll.npy')
 max_occupancy=np.load('max_occupancy.npy')
 mystates=[]
 

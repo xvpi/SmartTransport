@@ -16,7 +16,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/classify")
-@Api(tags = "分类信息(29号)")
+@Api(tags = "分类信息")
 public class ClassifyController {
 
     @Autowired
@@ -38,7 +38,7 @@ public class ClassifyController {
         }
     }
     @GetMapping("/by-time")
-    @ApiOperation("根据时间节点对获取所有路段分类数据 yyyy/mm/dd hh:mm")
+    @ApiOperation("根据时间节点对获取所有路段分类数据 yyyy/mm/dd hh:mm:ss")
     @ApiParam(example = "2024/12/29 02:05")
     public ApiResponse<?> getBtTime(@RequestParam  String timeStr) {
         return ApiResponse.success(classifyService.getClassificationByTimeIndex(timeStr));

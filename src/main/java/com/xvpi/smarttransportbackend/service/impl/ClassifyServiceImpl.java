@@ -79,13 +79,13 @@ public class ClassifyServiceImpl implements ClassifyService {
     }
     private int getIndexFromTime(String timeStr) {
         try {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm");
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
             LocalDateTime dateTime = LocalDateTime.parse(timeStr, formatter);
             int hour = dateTime.getHour();
             int minute = dateTime.getMinute();
             return hour * 6 + (minute / 10);
         } catch (Exception e) {
-            logger.warn("时间格式错误: {}，应为 yyyy/MM/dd HH:mm", timeStr);
+            logger.warn("时间格式错误: {}，应为 yyyy/MM/dd HH:mm:ss", timeStr);
             return -1;
         }
     }
@@ -108,7 +108,7 @@ public class ClassifyServiceImpl implements ClassifyService {
         // 生成时间字符串
         LocalDateTime startTime = BASE_TIME.plusMinutes(timeIndex * 10L);
         LocalDateTime endTime = startTime.plusMinutes(10);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
         String timeRange = formatter.format(startTime) + "-" + formatter.format(endTime);
 
         // 构建数据列表
