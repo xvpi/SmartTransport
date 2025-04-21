@@ -7,4 +7,5 @@ public interface ClassifyService {
     List<List<Integer>> getAllClassification();
     List<Integer> getClassificationByRoute(String oName, String dName);
     Map<String, Object> getClassificationByTimeIndex(String timeStr);
+    List<Map<String, Object>> getHotSpotByTime(String timeStr, int topN);
 }

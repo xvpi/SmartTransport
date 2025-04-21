@@ -60,4 +60,3 @@ X_seq, _ = generate_dataset(X, num_timesteps_input=12, num_timesteps_output=3)
 predict = (net(A_wave, X_seq).detach().numpy() * stds + means).astype(np.int64)
 future = predict[-1, :, :]  # shape: (89, 3)
 print(future.tolist())
-

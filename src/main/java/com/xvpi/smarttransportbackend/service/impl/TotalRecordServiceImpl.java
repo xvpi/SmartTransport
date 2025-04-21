@@ -1,9 +1,11 @@
 package com.xvpi.smarttransportbackend.service.impl;
 
+import com.xvpi.smarttransportbackend.dao.TotalRecordDao;
 import com.xvpi.smarttransportbackend.entity.TotalRecord;
 import com.xvpi.smarttransportbackend.repository.TotalRecordRepository;
 import com.xvpi.smarttransportbackend.service.TotalRecordService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 
@@ -26,4 +28,11 @@ public class TotalRecordServiceImpl implements TotalRecordService {
     public List<TotalRecord> getRecordsByTimeRange(LocalDateTime startTime, LocalDateTime endTime) {
         return totalRecordRepository.findByStartTimeBetween(startTime, endTime);
     }
+    @Autowired
+    private TotalRecordDao totalRecordDao;
+
+    public TotalRecord getPreviousRecord(LocalDateTime time) {
+        return totalRecordDao.findPreviousSegment(time);
+    }
+
 }

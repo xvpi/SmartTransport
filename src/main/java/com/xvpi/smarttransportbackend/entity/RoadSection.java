@@ -1,15 +1,16 @@
 package com.xvpi.smarttransportbackend.entity;
 
+import io.swagger.models.auth.In;
+
 public class RoadSection {
     private Integer id;
     private String oName;
     private String dName;
     private String oGis;
     private String dGis;
-    private Float distance;
+    private String distance;
     private String pathGis;
-    private Byte isKeyNode;
-
+    private Integer roadCapacity;
     // Getter and Setter 方法
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
@@ -26,12 +27,12 @@ public class RoadSection {
     public String getDGis() { return dGis; }
     public void setDGis(String dGis) { this.dGis = dGis; }
 
-    public Float getDistance() { return distance; }
-    public void setDistance(Float distance) { this.distance = distance; }
+    public String getDistance() { return distance; }
+    public void setDistance(String distance) { this.distance = distance; }
 
     public String getPathGis() { return pathGis; }
     public void setPathGis(String pathGis) { this.pathGis = pathGis; }
 
-    public Byte getIsKeyNode() { return isKeyNode; }
-    public void setIsKeyNode(Byte isKeyNode) { this.isKeyNode = isKeyNode; }
+    public Integer getRoadCapacity() { return roadCapacity; }
+    public void setRoadCapacity(Integer roadCapacity) { this.roadCapacity = roadCapacity; }
 }

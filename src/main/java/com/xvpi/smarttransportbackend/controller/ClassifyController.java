@@ -43,6 +43,13 @@ public class ClassifyController {
     public ApiResponse<?> getBtTime(@RequestParam  String timeStr) {
         return ApiResponse.success(classifyService.getClassificationByTimeIndex(timeStr));
     }
+    @GetMapping("/hot-spot")
+    @ApiOperation("根据时间节点查看当前热点区域TopN")
+    public ApiResponse<?> getHotRoutes(@RequestParam String timeStr,
+                                       @RequestParam(defaultValue = "5") int topN) {
+        return ApiResponse.success(classifyService.getHotSpotByTime(timeStr, topN));
+    }
+
 
 
 }

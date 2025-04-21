@@ -2,6 +2,7 @@
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 import json
+import os
 def rbf_kernel(X, gamma=None):
     """计算RBF核矩阵"""
     if gamma is None:
@@ -82,9 +83,11 @@ def main(data):
     return predicted_states#聚类结果
 
 #输入，从文件夹导入（此时的数据没有行和列标题）
-myspeeds29=np.load('average_speedAll.npy')
-mytraFlows29=np.load('mytraFlowsAll.npy')
-max_occupancy=np.load('max_occupancy.npy')
+base_path = os.path.dirname(os.path.abspath(__file__))  # 获取当前脚本目录
+
+myspeeds29=np.load(os.path.join(base_path, "average_speedAll.npy"))
+mytraFlows29=np.load(os.path.join(base_path, "mytraFlowsAll.npy"))
+max_occupancy=np.load(os.path.join(base_path, "max_occupancy.npy"))
 mystates=[]
 
 #流量、占有率、车速

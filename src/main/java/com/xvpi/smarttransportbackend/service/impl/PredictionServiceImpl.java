@@ -15,7 +15,7 @@ public class PredictionServiceImpl implements PredictionService {
 
     private static final Logger logger = LoggerFactory.getLogger(PredictionServiceImpl.class);
     private static final String PYTHON_SCRIPT_PATH = "python/predict_model/Predict.py";
-
+    private static final String PYTHON_SCRIPT_PATH2 = "python/predict_model_speed/Predict.py";
     private static final List<String> ROUTE_NAMES = List.of(
             "红11-红12", "红12-红4", "红13-红11", "红13-蓝4", "红1-红4", "红2-蓝5", "红4-红5", "红5-红13", "红8-红9", "红9-蓝2",
             "蓝10-绿14", "蓝10-绿6", "蓝11-蓝13", "蓝11-蓝26", "蓝11-绿7", "蓝12-蓝17", "蓝13-红2", "蓝13-红3", "蓝13-红8", "蓝13-蓝17",
@@ -28,10 +28,11 @@ public class PredictionServiceImpl implements PredictionService {
             "绿5-蓝8", "绿6-绿1", "绿6-绿11", "绿7-蓝8", "绿7-绿11", "绿7-绿16", "绿8-绿4", "绿9-绿15", "绿9-绿4"
     );
         @Override
-        public List<List<Integer>> getAllPredictions(String predictTime) {
+        public List<List<Integer>> getAllPredictions(String predictTime,String param) {
             List<String> output;
             try {
-                output = PythonRunner.runPythonScript(PYTHON_SCRIPT_PATH,predictTime);
+                if(param=="speed") output = PythonRunner.runPythonScript(PYTHON_SCRIPT_PATH2,predictTime);
+                else output = PythonRunner.runPythonScript(PYTHON_SCRIPT_PATH2,predictTime);
             } catch (Exception e) {
                 throw new RuntimeException("执行Python脚本失败", e);
             }
@@ -68,7 +69,7 @@ public class PredictionServiceImpl implements PredictionService {
             throw new IllegalArgumentException("未找到对应路段: " + key);
         }
 
-        List<List<Integer>> allPredictions = getAllPredictions(predictTime);
+        List<List<Integer>> allPredictions = getAllPredictions(predictTime,"flow");
         if (index >= allPredictions.size()) {
             logger.error("预测结果数量不足，索引 [{}] 超出范围", index);
             throw new IndexOutOfBoundsException("预测结果索引超出范围");

@@ -23,7 +23,12 @@ public class PredictController {
     @GetMapping("/all")
     @ApiOperation("获取全部预测数据")
     public ApiResponse<List<List<Integer>>> getAll(@RequestParam String predictTime) {
-        return ApiResponse.success(predictionService.getAllPredictions(predictTime));
+        return ApiResponse.success(predictionService.getAllPredictions(predictTime,"flow"));
+    }
+    @GetMapping("/all-speed")
+    @ApiOperation("获取全部预测数据-速度")
+    public ApiResponse<List<List<Integer>>> getAllSpeed(@RequestParam String predictTime) {
+        return ApiResponse.success(predictionService.getAllPredictions(predictTime,"speed"));
     }
 
     @GetMapping("/by-route")

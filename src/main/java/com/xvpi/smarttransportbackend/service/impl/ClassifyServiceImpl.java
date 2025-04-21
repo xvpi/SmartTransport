@@ -3,6 +3,7 @@ package com.xvpi.smarttransportbackend.service.impl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xvpi.smarttransportbackend.config.PythonRunner;
+import com.xvpi.smarttransportbackend.config.TimeUtils;
 import com.xvpi.smarttransportbackend.service.ClassifyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class ClassifyServiceImpl implements ClassifyService {
@@ -77,22 +79,10 @@ public class ClassifyServiceImpl implements ClassifyService {
 
         return allPredictions.get(index);
     }
-    private int getIndexFromTime(String timeStr) {
-        try {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-            LocalDateTime dateTime = LocalDateTime.parse(timeStr, formatter);
-            int hour = dateTime.getHour();
-            int minute = dateTime.getMinute();
-            return hour * 6 + (minute / 10);
-        } catch (Exception e) {
-            logger.warn("时间格式错误: {}，应为 yyyy/MM/dd HH:mm:ss", timeStr);
-            return -1;
-        }
-    }
 
     @Override
     public Map<String, Object> getClassificationByTimeIndex(String timeStr) {
-        int timeIndex = getIndexFromTime(timeStr);
+        int timeIndex = TimeUtils.convertTimeStrToIndex(timeStr);
 // 读取 result.npy
         INDArray resultArray;
         resultArray = Nd4j.createFromNpyFile(new File(RESULT_PATH));
@@ -126,5 +116,46 @@ public class ClassifyServiceImpl implements ClassifyService {
         result.put("data", stateList);
         return result;
     }
+    @Override
+    public List<Map<String, Object>> getHotSpotByTime(String timeStr, int topN) {
+        int currentIndex = TimeUtils.convertTimeStrToIndex(timeStr);
+        int startIndex = Math.max(0, currentIndex - 5); // 往前6个时间段
+
+        Map<String, Integer> routeToCount = new HashMap<>();
+        for (String route : ROUTE_NAMES) {
+            routeToCount.put(route, 0);
+        }
+
+        // 遍历过去 6 个时间点
+        for (int i = startIndex; i <= currentIndex; i++) {
+            String indexTimeStr = TimeUtils.convertIndexToTimeStr(i);
+            Map<String, Object> result = getClassificationByTimeIndex(indexTimeStr);
+
+            if (result != null && result.containsKey("data")) {
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> data = (List<Map<String, Object>>) result.get("data");
+                for (Map<String, Object> entry : data) {
+                    String route = (String) entry.get("route");
+                    int state = (Integer) entry.get("state");
+                    if (state == 2) {
+                        routeToCount.put(route, routeToCount.get(route) + 1);
+                    }
+                }
+            }
+        }
+
+        return routeToCount.entrySet().stream()
+                .sorted((a, b) -> b.getValue().compareTo(a.getValue()))
+                .limit(topN)
+                .map(entry -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("route", entry.getKey());
+                    map.put("count", entry.getValue());
+                    return map;
+                })
+                .collect(Collectors.toList());
+    }
+
+
 
 }
