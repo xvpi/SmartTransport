@@ -1,5 +1,6 @@
 package com.xvpi.smarttransportbackend.service.impl;
 
+import com.xvpi.smarttransportbackend.dao.CommandDao;
 import com.xvpi.smarttransportbackend.entity.AICommand;
 import com.xvpi.smarttransportbackend.entity.RoadSection;
 import com.xvpi.smarttransportbackend.repository.AICommandRepository;
@@ -8,16 +9,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 @Service
 public class AICommandServiceImpl implements AICommandService {
     @Autowired
     private AICommandRepository commandRepository;
-
+    @Autowired
+    private TrafficOfficerService trafficOfficerService;
     @Autowired
     private ClassifyService classifyService;
 
@@ -38,15 +38,19 @@ public class AICommandServiceImpl implements AICommandService {
             "绿14-绿17", "绿15-绿13", "绿15-绿3", "绿16-绿13", "绿16-绿8", "绿17-绿3", "绿17-绿8", "绿3-蓝8", "绿4-蓝8", "绿4-绿16",
             "绿5-蓝8", "绿6-绿1", "绿6-绿11", "绿7-蓝8", "绿7-绿11", "绿7-绿16", "绿8-绿4", "绿9-绿15", "绿9-绿4"
     );
+
     @Override
     public void generateAICommands(String currentTimeStr) {
+        // 将时间字符串解析为 LocalDateTime
+        LocalDateTime generateTime = LocalDateTime.parse(currentTimeStr, DateTimeFormatter.ofPattern("yyyy/MM/dd " +
+                "HH:mm:ss"));
+
         Map<String, Object> classificationResult = classifyService.getClassificationByTimeIndex(currentTimeStr);
-        List<List<Integer>> predictedTraffic = predictService.getAllPredictions(currentTimeStr,"speed");
+        List<List<Integer>> predictedTraffic = predictService.getAllPredictions(currentTimeStr, "speed");
 
         @SuppressWarnings("unchecked")
         List<Map<String, Object>> data = (List<Map<String, Object>>) classificationResult.get("data");
 
-        // 第一步：将预测数据与 ROUTE_NAMES 组合成 Map<String, List<Integer>>
         Map<String, List<Integer>> routePredictionMap = new HashMap<>();
         for (int i = 0; i < ROUTE_NAMES.size(); i++) {
             if (i < predictedTraffic.size()) {
@@ -56,13 +60,12 @@ public class AICommandServiceImpl implements AICommandService {
 
         for (Map<String, Object> segment : data) {
             String route = (String) segment.get("route");
-            int state = (Integer) segment.get("state"); // 0正常，1拥堵，2严重拥堵
+            int state = (Integer) segment.get("state");
 
             List<Integer> future = routePredictionMap.getOrDefault(route, Arrays.asList(0, 0, 0));
             double avgFutureTraffic = future.stream().mapToInt(Integer::intValue).average().orElse(0.0);
 
-            if (state == 2 && avgFutureTraffic < 45) {
-                // 拆分起点和终点
+            if (state == 2 && avgFutureTraffic < 10) {
                 String[] names = route.split("-");
                 if (names.length != 2) continue;
 
@@ -70,7 +73,7 @@ public class AICommandServiceImpl implements AICommandService {
                 String dName = names[1];
 
                 RoadSection section = roadSectionService.getByOAndDName(oName, dName);
-                int roadCapacity = section != null ? section.getRoadCapacity() : 0;
+                 int roadCapacity = section != null ? section.getRoadCapacity() : 0;
 
                 int officerCount = 1;
                 if (roadCapacity > 400) {
@@ -80,31 +83,59 @@ public class AICommandServiceImpl implements AICommandService {
                 }
 
                 String suggestion = String.format(
-                        "【AI建议】%s 路段严重拥堵，建议派出 %d 名交警或调整信号配时。",
-                        route, officerCount
+                        "【AI建议】%s 路段在 %s 出现严重拥堵，建议派出 %d 名交警或调整信号配时。",
+                        route,
+                        generateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
+                        officerCount
                 );
-
                 AICommand cmd = new AICommand();
+                cmd.setOfficerCount(officerCount);
+                cmd.setStatus(false);
                 cmd.setRoute(route);
-                cmd.setGenerateTime(LocalDateTime.now());
+                cmd.setGenerateTime(generateTime); // ✅ 使用解析后的时间
                 cmd.setSeverityLevel(state);
-                cmd.setProcessed(false);
+                cmd.setProcessed(0);
                 cmd.setSuggestion(suggestion);
 
                 commandRepository.save(cmd);
             }
         }
+        dispatchUnprocessedCommands();
     }
+
 
     @Override
     public List<AICommand> getUnprocessedCommands() {
-        return commandRepository.findByProcessedFalse();
+        return commandRepository.findByStatus(false);}
+    @Override
+    public Optional<AICommand> getCommandById(Long commandId) {
+        return commandRepository.findById(commandId);}
+    @Autowired
+    private CommandDao commandDao;
+    @Override
+    public Map<String, Integer> getCommandStatistics(LocalDateTime getTime) {
+        int total = commandDao.countAllCommands(getTime);
+        int unfinished = commandDao.countUnfinishedCommands(getTime);
+        return Map.of(
+                "total", total,
+                "unprocessed", unfinished
+        );
     }
     @Override
-    public void markAsProcessed(Long id) {
-        commandRepository.findById(id).ifPresent(cmd -> {
-            cmd.setProcessed(true);
-            commandRepository.save(cmd);
-        });
+    public void dispatchUnprocessedCommands() {
+        List<AICommand> cmds = getUnprocessedCommands();
+
+        for (AICommand cmd : cmds) {
+            int needAssign = cmd.getOfficerCount() - cmd.getProcessed();
+            for (int i = 0; i < needAssign; i++) {
+                try {
+                    boolean result = trafficOfficerService.assignTask(cmd.getId());
+                    if (!result) break;
+                } catch (RuntimeException e) {
+                    // 没有空闲交警或其他异常，提前退出本条指令
+                    break;
+                }
+            }
+        }
     }
 }

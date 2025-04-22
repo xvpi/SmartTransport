@@ -8,4 +8,5 @@ public interface TotalRecordService {
     List<TotalRecord> getAllRecords();
     List<TotalRecord> getRecordsByTimeRange(LocalDateTime startTime, LocalDateTime endTime);
     TotalRecord getPreviousRecord(LocalDateTime time);
+    int countDistinctPlateNoByDate(String date);
 }

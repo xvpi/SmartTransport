@@ -1,6 +1,8 @@
 package com.xvpi.smarttransportbackend.repository;
         import com.xvpi.smarttransportbackend.entity.TotalRecord;
+        import org.apache.ibatis.annotations.Param;
         import org.springframework.data.jpa.repository.JpaRepository;
+        import org.springframework.data.jpa.repository.Query;
         import org.springframework.stereotype.Repository;
 
         import java.time.LocalDateTime;
@@ -9,4 +11,6 @@ package com.xvpi.smarttransportbackend.repository;
 @Repository
 public interface TotalRecordRepository extends JpaRepository<TotalRecord, Integer> {
         List<TotalRecord> findByStartTimeBetween(LocalDateTime startTime, LocalDateTime endTime);
+
+
 }

@@ -83,7 +83,7 @@ public class ClassifyServiceImpl implements ClassifyService {
     @Override
     public Map<String, Object> getClassificationByTimeIndex(String timeStr) {
         int timeIndex = TimeUtils.convertTimeStrToIndex(timeStr);
-// 读取 result.npy
+        // 读取 result.npy
         INDArray resultArray;
         resultArray = Nd4j.createFromNpyFile(new File(RESULT_PATH));
 
@@ -94,7 +94,6 @@ public class ClassifyServiceImpl implements ClassifyService {
             throw new IllegalArgumentException("时间索引越界：有效范围是 0 到 " + (totalTimeSteps - 1));
         }
 
-
         // 生成时间字符串
         LocalDateTime startTime = BASE_TIME.plusMinutes(timeIndex * 10L);
         LocalDateTime endTime = startTime.plusMinutes(10);
@@ -103,19 +102,38 @@ public class ClassifyServiceImpl implements ClassifyService {
 
         // 构建数据列表
         List<Map<String, Object>> stateList = new ArrayList<>();
+        int countState2 = 0;  // 用于统计状态为 2 的数量
+        int totalState = 0;  // 用于计算所有路段的总拥堵指数
+
         for (int i = 0; i < totalRoutes; i++) {
             Map<String, Object> item = new HashMap<>();
+            int state = resultArray.getInt(i, timeIndex);
             item.put("route", ROUTE_NAMES.get(i));
-            item.put("state", resultArray.getInt(i, timeIndex));
+            item.put("state", state);
             stateList.add(item);
+
+            // 统计状态为 2 的数量
+            if (state == 2) {
+                countState2++;
+            }
+
+            // 累加当前路段的拥堵指数
+            totalState += state;
         }
+
+        // 计算所有路段的平均拥堵指数
+        double averageCongestionIndex = totalRoutes > 0 ? (double) totalState / totalRoutes : 0.0;
 
         // 返回数据
         Map<String, Object> result = new HashMap<>();
         result.put("time", timeRange);
         result.put("data", stateList);
+        result.put("state2Count", countState2);  // 返回状态为 2 的数量
+        result.put("averageCongestionIndex", averageCongestionIndex);  // 返回所有路段的平均拥堵指数
         return result;
     }
+
+
     @Override
     public List<Map<String, Object>> getHotSpotByTime(String timeStr, int topN) {
         int currentIndex = TimeUtils.convertTimeStrToIndex(timeStr);

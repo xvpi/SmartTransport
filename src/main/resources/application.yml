@@ -3,7 +3,7 @@ server:
   port: 8080
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/traffic_db?characterEncoding=UTF-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    url: jdbc:mysql://localhost:3306/traffic_db?characterEncoding=UTF-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
     password: 123456
@@ -15,4 +15,8 @@ spring:
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
+upload:
+  path: F:/idealproject/SmartTransport/SmartTransportBackEnd/uploads
+  url:
+    prefix: /emergency_photos
 

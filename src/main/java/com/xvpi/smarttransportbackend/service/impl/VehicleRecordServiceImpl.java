@@ -1,5 +1,6 @@
 package com.xvpi.smarttransportbackend.service.impl;
 
+import com.xvpi.smarttransportbackend.config.PythonRunner;
 import com.xvpi.smarttransportbackend.dao.VehicleRecordDao;
 import com.xvpi.smarttransportbackend.entity.RoadSection;
 import com.xvpi.smarttransportbackend.entity.VehicleRecord;
@@ -24,6 +25,8 @@ public class VehicleRecordServiceImpl implements VehicleRecordService {
     public Map<String, Long> getVehicleTypeCount(LocalDateTime start, LocalDateTime end) {
         return vehicleRecordDao.countVehicleTypesByTimeRange(start, end);
     }
+
+
 //    private final VehicleRecordRepository vehicleRecordRepository;
 //
 //    @Override

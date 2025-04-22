@@ -60,4 +60,12 @@ public class TotalRecordController {
 
         return ApiResponse.success(result);
     }
+
+    @GetMapping("/plate-count")
+    @ApiOperation("统计某日出现的不同车数yyyy/mm/dd")
+    public ApiResponse<Integer> getLaneCount(@RequestParam String date) {
+        int count = totalRecordService.countDistinctPlateNoByDate(date);
+        return ApiResponse.success(count);
+    }
+
 }

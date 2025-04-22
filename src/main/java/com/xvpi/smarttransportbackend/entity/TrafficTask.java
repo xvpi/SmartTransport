@@ -1,28 +1,25 @@
 package com.xvpi.smarttransportbackend.entity;
+
 import lombok.Data;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+
 @Data
 @Entity
-@Table(name = "ai_command")
-public class AICommand {
+@Table(name = "traffic_task")
+public class TrafficTask {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String route;
-
-    private String suggestion;
-
-    @Column(name = "generate_time")
-    private LocalDateTime generateTime;
-
-    @Column(name = "severity_level")
+    private String taskType;
     private Integer severityLevel;
-    //当前已分配人数
-    private Integer processed;
-    //需要分配的人数
     private Integer officerCount;
-    private Boolean status;
+    private Integer status;
+    private LocalDateTime assignedTime;
+    private LocalDateTime completedTime;
+    private String suggestion;
 }
+
+

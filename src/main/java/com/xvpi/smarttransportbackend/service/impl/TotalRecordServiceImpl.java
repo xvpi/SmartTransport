@@ -2,6 +2,7 @@ package com.xvpi.smarttransportbackend.service.impl;
 
 import com.xvpi.smarttransportbackend.dao.TotalRecordDao;
 import com.xvpi.smarttransportbackend.entity.TotalRecord;
+import com.xvpi.smarttransportbackend.dao.FormattedDataDao;
 import com.xvpi.smarttransportbackend.repository.TotalRecordRepository;
 import com.xvpi.smarttransportbackend.service.TotalRecordService;
 import lombok.RequiredArgsConstructor;
@@ -35,4 +36,11 @@ public class TotalRecordServiceImpl implements TotalRecordService {
         return totalRecordDao.findPreviousSegment(time);
     }
 
+    @Autowired
+    private FormattedDataDao formattedDataDao;
+    @Override
+    // 统计每天车辆数
+    public int countDistinctPlateNoByDate(String date) {
+        return formattedDataDao.countDistinctPlateNoByDate(date);
+    }
 }
