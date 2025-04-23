@@ -2,7 +2,9 @@ package com.xvpi.smarttransportbackend.controller;
 
 import com.xvpi.smarttransportbackend.entity.*;
 import com.xvpi.smarttransportbackend.repository.DispatchTaskRepository;
+import com.xvpi.smarttransportbackend.service.AICommandService;
 import com.xvpi.smarttransportbackend.service.EmergencyReportService;
+import com.xvpi.smarttransportbackend.service.RoadSectionService;
 import com.xvpi.smarttransportbackend.service.TrafficOfficerService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -15,9 +17,8 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.transform.Result;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/police")
@@ -27,6 +28,10 @@ public class TrafficOfficerController {
     private TrafficOfficerService officerService;
     @Autowired
     private EmergencyReportService reportService;
+    @Autowired
+    private AICommandService commandService;
+    @Autowired
+    private RoadSectionService roadSectionService;
     @PostMapping("/register")
     @ApiOperation("注册")
     public ApiResponse<TrafficOfficer> register(@RequestBody TrafficOfficer officer) {
@@ -90,9 +95,33 @@ public class TrafficOfficerController {
         TrafficOfficer officer = officerService.getCurrentOfficer(httpRequest);
         Long officerId = officer.getId();
         List<DispatchTask> assignedTasks = officerService.getCurrentTasks(officerId);
+
+        List<Map<String, Object>> enrichedTasks = assignedTasks.stream().map(task -> {
+            Map<String, Object> taskMap = new HashMap<>();
+            taskMap.put("id", task.getId());
+            taskMap.put("officerId", task.getOfficerId());
+            taskMap.put("commandId", task.getCommandId());
+            taskMap.put("assignTime", task.getAssignTime());
+            taskMap.put("status", task.getStatus());
+
+            Optional<AICommand> optionalCommand = commandService.getCommandById(task.getCommandId());
+            if (optionalCommand.isPresent()) {
+                AICommand command = optionalCommand.get();  // 安全获取实际对象
+                taskMap.put("route", command.getRoute());
+
+                RoadSection road = roadSectionService.findByRoute(command.getRoute());
+                if (road != null) {
+                    taskMap.put("o_gis", road.getOGis());
+                    taskMap.put("d_gis", road.getDGis());
+                }
+            }
+
+            return taskMap;
+        }).collect(Collectors.toList());
+
         return ApiResponse.success(Map.of(
                 "officer", officer,
-                "task", assignedTasks
+                "task", enrichedTasks
         ));
     }
     @PostMapping("/report")

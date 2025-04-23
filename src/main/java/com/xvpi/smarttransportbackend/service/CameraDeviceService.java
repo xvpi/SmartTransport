@@ -8,5 +8,10 @@ import java.util.Optional;
 public interface CameraDeviceService {
     List<CameraDevice> getAllDevices();
     Optional<CameraDevice> getByShortName(String shortName);
+
+
+    void deleteCamera(Integer id);
+    CameraDevice updateCamera(CameraDevice cameraDevice);
+    CameraDevice addCamera(CameraDevice cameraDevice);
 }
 

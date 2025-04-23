@@ -1,8 +1,16 @@
 package com.xvpi.smarttransportbackend.entity;
 
 import io.swagger.models.auth.In;
+import lombok.Data;
 
+import javax.persistence.*;
+
+@Data
+@Entity
+@Table(name = "road_section")
 public class RoadSection {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String oName;
     private String dName;
